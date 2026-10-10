@@ -1,0 +1,58 @@
+# ============================================================================
+# scLATCH release .gitignore
+# Tracked: the sclatch/ package, notebooks/, the small priors
+# (TF lists + tss + READMEs), the bundled quick-run huang_tcell and pbmc_10k subsets, and the
+# root docs. NOT tracked: downloaded full datasets, the ChIP-Atlas cache,
+# training checkpoints/outputs, caches.
+# ============================================================================
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+dist/
+.eggs/
+.ipynb_checkpoints/
+
+# --- Environments ---
+.venv/
+venv/
+env/
+.env
+
+# --- Training outputs / checkpoints ---
+*.pt
+/results/
+/demo_out/
+*_out/
+/runs/
+/outputs/
+/processed/
+
+# --- Datasets: ignore everything under data/ EXCEPT the README, the .gitkeep,
+#     and the small bundled quick-run huang_tcell and pbmc_10k subsets (so a clone runs offline). ---
+/data/**
+!/data/README.md
+!/data/.gitkeep
+!/data/huang_tcell/
+!/data/huang_tcell/expression.h5ad
+!/data/huang_tcell/metadata.csv
+!/data/huang_tcell/atac_mask.npz
+!/data/pbmc_10k/
+!/data/pbmc_10k/expression.h5ad
+!/data/pbmc_10k/metadata.csv
+!/data/pbmc_10k/atac_mask.npz
+
+# --- Priors: TF lists + tss + READMEs ship; the downloaded ChIP-Atlas cache does not. ---
+/priors/chip_atlas/hg38/*
+/priors/chip_atlas/mm10/*
+!/priors/chip_atlas/hg38/.gitkeep
+!/priors/chip_atlas/hg38/README.md
+!/priors/chip_atlas/mm10/.gitkeep
+!/priors/chip_atlas/mm10/README.md
+
+# --- OS ---
+.DS_Store
+Thumbs.db

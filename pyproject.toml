@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sclatch"
+version = "0.1.0"
+description = "scLATCH: Diffusion-based dynamic Gene Regulatory Network inference from single-cell multi-omic data"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+keywords = ["GRN", "gene regulatory network", "diffusion model", "single-cell", "multiome", "ATAC"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Programming Language :: Python :: 3",
+]
+
+dependencies = [
+    "torch>=2.0",
+    "numpy>=1.24",
+    "pandas>=1.5",
+    "scipy>=1.9",
+    "scikit-learn>=1.2",
+    "scikit-misc>=0.2",
+    "scanpy>=1.9",
+    "anndata>=0.9",
+    "leidenalg>=0.9",
+]
+
+[project.optional-dependencies]
+viz = ["matplotlib>=3.6", "networkx>=2.6"]
+
+[project.scripts]
+sclatch-train = "sclatch._train:main"
+sclatch-preprocess = "sclatch.preprocessing.cli:main"
+sclatch-mask = "sclatch.preprocessing.cli:main_atac_mask"
+sclatch-ground-truth = "sclatch.preprocessing.cli:main_ground_truth"
+
+[tool.setuptools.packages.find]
+include = ["sclatch*"]
