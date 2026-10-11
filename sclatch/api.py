@@ -548,7 +548,8 @@ def load_model(path, dataset=None, condition_key="condition"):
         n_genes=G,
         hidden_dims=cfg.get("hidden_dims", [16, 16, 16]),
         cond_dim=cfg.get("cond_dim", 64),
-        continuous_cond_keys=cfg.get("continuous", ["pseudotime"]) or ["pseudotime"],
+        # an empty list is a run without pseudotime (e.g. static, rank 0); keep it as trained
+        continuous_cond_keys=cfg["continuous"] if "continuous" in cfg else ["pseudotime"],
         categorical_cond_keys=categorical_cond_keys,
         adj_dropout=cfg.get("adj_dropout", 0.3),
         sparse_threshold_coef=cfg.get("sparse_threshold_coef", 0.2),

@@ -15,8 +15,8 @@ Install a GPU build of PyTorch **before** scLATCH, so that pip does not install 
 that may not match your CUDA driver.
 
 ```bash
-git clone https://github.com/<org>/sclatch.git
-cd sclatch
+git clone https://github.com/debraj-55555/scLATCH.git
+cd scLATCH
 
 # 1. PyTorch >= 2.0 for your GPU: check your CUDA version with `nvidia-smi`, then copy the
 #    matching command from https://pytorch.org/get-started/locally/ (example: CUDA 12.6)
