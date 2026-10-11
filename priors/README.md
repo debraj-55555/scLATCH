@@ -1,78 +1,43 @@
-# priors/ : regulatory priors
+# Priors
 
-`priors/` is the single location for all regulatory priors. scLATCH reads them relative to the
-repo root. The curated TF lists and the TSS tables ship in this folder; the large ChIP-Atlas
-binding cache is downloaded here.
+scLATCH reads its priors from this folder. The regulatory mask keeps a TF-to-target edge when
+ChIP-Atlas reports binding of the TF within 10 kb of the target's TSS and the region is
+accessible in scATAC.
 
-scLATCH is multiome: the mask is ChIP-Atlas binding (this folder) intersected with scATAC
-accessibility over a curated TF list. Accessibility comes from the dataset's own scATAC
-(`data/<name>/atac.h5ad`) or a matched-tissue reference atlas passed to `build_prior`, not from
-this folder. See `data/README.md`.
+| Path | Content | In repo |
+|---|---|---|
+| `allTFs_hg38.txt`, `allTFs_mm.txt` | SCENIC+ TF lists, human and mouse (`tf_list="scenicplus"`, default) | yes |
+| `hs_hgnc_tfs.txt`, `mm_mgi_tfs.txt` | pySCENIC TF lists, human and mouse (`tf_list="pyscenic"`) | yes |
+| `tss/TSS_extend_1M.txt`, `tss/mm10_gene_tss.csv` | TSS tables, hg38 and mm10 | yes |
+| `chip_atlas/{hg38,mm10}/{TF}.10.tsv` | ChIP-Atlas binding within 10 kb of the TSS, one file per TF | download |
 
-## What is here
+## ChIP-Atlas cache
 
-```
-priors/
-├── allTFs_hg38.txt         # human TF list, SCENIC+ (ships in repo)
-├── allTFs_mm.txt           # mouse TF list, SCENIC+ (ships in repo)
-├── hs_hgnc_tfs.txt         # human TF list, pySCENIC (ships in repo)
-├── mm_mgi_tfs.txt          # mouse TF list, pySCENIC (ships in repo)
-├── tss/
-│   ├── TSS_extend_1M.txt   # human (hg38) TSS table (ships in repo)
-│   └── mm10_gene_tss.csv   # mouse (mm10) TSS table (ships in repo)
-└── chip_atlas/
-    ├── hg38/{TF}.10.tsv    # ChIP-Atlas human binding cache (DOWNLOAD)
-    └── mm10/{TF}.10.tsv    # ChIP-Atlas mouse binding cache (DOWNLOAD)
-```
-
-## TF lists (shipped)
-
-The candidate regulators come from one of two curated TF lists of the Aerts laboratory. Both
-ship in this folder, so `build_prior` reads them with no download. Neither list depends on any
-evaluation ground truth. Choose the list with `tf_list=` (CLI `--tf_list`).
-
-| `tf_list` | human | mouse | source |
-|---|---|---|---|
-| `scenicplus` (default) | `allTFs_hg38.txt` | `allTFs_mm.txt` | SCENIC+ (Bravo González-Blas et al. 2023), https://resources.aertslab.org/cistarget/tf_lists/ |
-| `pyscenic` | `hs_hgnc_tfs.txt` | `mm_mgi_tfs.txt` | pySCENIC (Van de Sande et al. 2020), https://github.com/aertslab/pySCENIC (resources/) |
-
-The paper benchmark masks (PBMC, BMMC, SNARE-seq, mouse skin; `data/pbmc_10k` here) used the
-SCENIC+ lists. The paper biology masks (Huang T cell, LCMV, ovarian TIL, melanoma;
-`data/huang_tcell` here) used the pySCENIC lists. To rebuild a paper mask, pass the list it was
-built with.
-
-## TSS tables (shipped)
-
-`tss/TSS_extend_1M.txt` (human) and `tss/mm10_gene_tss.csv` (mouse) give each gene's
-transcription start site. With these present, `build_prior` maps peaks to genes offline, with
-no Ensembl call, reproducing the paper TSS snapshot.
-
-## ChIP-Atlas cache (download)
-
-The per-TF ChIP-Atlas binding tables are large (1,681 files, 1.7 GB unpacked) and are not in
-the repo. Download `scLATCH_priors_chip_atlas.tar.gz` (335 MB) from Google Drive `<DRIVE_LINK>`
-(placeholder) and, from the repository root, run
+Needed only to build a new mask. Download `scLATCH_priors_chip_atlas.tar.gz` (335 MB, 1.7 GB
+unpacked) from
+[Google Drive](https://drive.google.com/drive/folders/1Uj2zvCKHfi9ET7Ud1NzR39VKzNwefF-p?usp=sharing)
+and extract it from the repository root:
 
 ```bash
 tar -xzf scLATCH_priors_chip_atlas.tar.gz -C priors/
-sha256sum -c --quiet priors/chip_atlas/SHA256SUMS   # optional check
+sha256sum -c --quiet priors/chip_atlas/SHA256SUMS    # optional integrity check
 ```
 
-The files land in `priors/chip_atlas/hg38/` (1,183 human TFs) and `priors/chip_atlas/mm10/`
-(498 mouse TFs) as `{TF}.10.tsv`, which is where `build_prior` looks; no path setting is needed.
-The same cache is in Zenodo Record 1 as `priors/chip_atlas_cache/{hg38,mm10}/`; copy those two
-folders to `priors/chip_atlas/` if you use Zenodo instead.
+This gives 1,183 human files in `chip_atlas/hg38/` and 498 mouse files in `chip_atlas/mm10/`.
+The cache is the ChIP-Atlas release downloaded from 30 March to 10 April 2026. Pass
+`allow_download=False` (command line: `--no_download`) to build masks from this cache only;
+otherwise a TF missing from the cache is downloaded from ChIP-Atlas, whose data change over
+time. To keep the cache elsewhere, set `SCLATCH_CHIPATLAS_DIR` (command line: `--cache_dir`).
 
-The ChIP-Atlas cache is only needed to rebuild a mask from scratch. The paper masks were built
-from this cache. Pass `allow_download=False` (CLI `--no_download`) to use only the cached files;
-by default a TF missing from the cache is fetched from ChIP-Atlas, whose data change over time.
-Precomputed masks are
-provided per dataset and `build_prior` loads them when present, so the cache is optional for
-running the model. If the cache is missing when you rebuild, `build_prior` raises a clear error
-pointing here. Override the location with `SCLATCH_CHIPATLAS_DIR` or `cache_dir` / `--cache_dir`.
+## Notes
 
-## Installing via pip without cloning
+- The bundled `huang_tcell` mask was built with the pySCENIC list and the `pbmc_10k` mask with
+  the SCENIC+ list. Use the same `tf_list` to rebuild them.
+- If you install scLATCH with pip without cloning the repository, set `SCLATCH_DATA_ROOT` to the
+  folder that contains `priors/`.
 
-The priors are not bundled in the pip wheel. If you `pip install` scLATCH without cloning the
-repo, obtain the `priors/` folder separately (from the repo or the Zenodo priors bundle) and set
-`SCLATCH_DATA_ROOT` to the directory that contains it so the code can resolve `priors/`.
+## Sources
+
+ChIP-Atlas (https://chip-atlas.org); SCENIC+ TF lists
+(https://resources.aertslab.org/cistarget/tf_lists/); pySCENIC TF lists
+(https://github.com/aertslab/pySCENIC).
