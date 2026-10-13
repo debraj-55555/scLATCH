@@ -7,7 +7,7 @@ truth and the package can never diverge from the trained checkpoints.
 
 SINGLE-STAGE means A_static + NN and the rank-32 dynamic δA(τ) are trained **jointly** with
 an internal warm-start (`dynamic_active` flips False→True so the random U,V do not corrupt
-early denoising), under temporal-contrastive + sign-consistency regularizers. This is the
+early denoising), with sparsity and temporal-contrastive regularization. This is the
 production path.
 
 It is NOT the deprecated two-stage schedule (`sclatch-train --two_stage`: Stage-1 static

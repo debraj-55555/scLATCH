@@ -17,13 +17,13 @@ Defaults (unchanged from the paper, do not alter):
     mask_leak = 0.4, with NO annealing (see the trainer / FINAL_DYNAMIC_CONFIG)
 
 Reproducibility note:
-  This builder runs a LIVE path: it queries ChIP-Atlas binding and Ensembl TSS
-  positions over the network. Those sources are updated over time, so a freshly
-  built mask can drift from the exact snapshot used in the paper. To reproduce the
-  paper's exact masks, use the pinned ChIP-Atlas sample manifests and the
-  precomputed per-dataset atac_mask.npz files from the Zenodo data record (DOI on
-  acceptance), or supply your own mask. The large ChIP-Atlas / TSS caches are NOT
-  shipped in the pip package, and neither are the TF lists; all live in the repo priors/.
+  A TF missing from the local ChIP-Atlas cache is downloaded unless allow_download=False,
+  and without a local TSS table the TSS positions come from Ensembl. Both sources change
+  over time, so a freshly downloaded mask can drift from the one used in the paper. To
+  reproduce the paper's masks, build from the cache in priors/chip_atlas/ with
+  allow_download=False, or use the precomputed atac_mask.npz files in the figshare data
+  record (https://doi.org/10.6084/m9.figshare.34335939). The caches and the TF lists are
+  not shipped in the pip package; they live in the repository priors/.
 
 Genome assemblies:
   human -> hg38
@@ -89,13 +89,12 @@ def _resolve_repo_path(relpath: str) -> str:
     return relpath
 
 
-# ── TF list (curated Aerts-lab lists only, NO GT seeding) ────
+# ── TF list (curated Aerts-lab lists, independent of any ground truth) ────
 
 def get_tf_list(gene_names: list, organism: str = "human", tf_list: str = "scenicplus") -> list:
     """Get the candidate-regulator list from a curated species-specific TF list.
 
-    NO ground truth is read. This is the key difference from the old code
-    that seeded TFs from label.csv. The list is read from priors/ (TF_LISTS[tf_list][organism]),
+    No ground truth is read. The list is read from priors/ (TF_LISTS[tf_list][organism]),
     the single location for all priors.
 
     Parameters
@@ -526,7 +525,7 @@ def build_atac_mask(
     n_genes = len(gene_names)
     logger.info(f"Building ATAC mask: {n_genes} genes, {organism} ({genome})")
 
-    # Get TF list — SCENIC+ only, NO GT seeding
+    # Candidate regulators from the curated TF list (no ground truth)
     tf_names = get_tf_list(gene_names, organism, tf_list=tf_list)
 
     # Get TSS positions (local snapshot preferred -> offline & reproducible)
@@ -567,7 +566,7 @@ def build_atac_mask(
         raise FileNotFoundError(
             f"ChIP-Atlas cache not found: {genome_cache}\n"
             f"Put the ChIP-Atlas binding cache at priors/chip_atlas/{genome}/ as {{TF}}.10.tsv "
-            f"files (download from Drive/Zenodo, see priors/README.md), or set "
+            f"files (see priors/README.md), or set "
             f"SCLATCH_CHIPATLAS_DIR / pass --cache_dir. To skip the ATAC intersection use "
             f"--skip_atac_peaks. Precomputed masks are also provided; build_prior() loads one "
             f"if present.")

@@ -365,8 +365,8 @@ def _run_training_loop(model, loader, optimizer, sqrt_ab, sqrt_om, T,
         _log(f"  Using AMP (mixed precision) for {ds['n_genes']} genes"
               f"{', no GradScaler (bf16 params)' if has_bf16 else ''}")
 
-    # Mask annealing: start with mask_leak for fast learning,
-    # anneal to 1.0 so uncovered GT edges can rank properly (AUROC)
+    # Optional mask annealing (off in the paper runs, --no_mask_anneal): start with mask_leak,
+    # then anneal toward 1.0 so edges outside the mask can still be ranked
     mask_anneal = (not no_mask_anneal and
                    hasattr(model, 'set_mask_leak') and
                    model._atac_mask_binary is not None and
@@ -525,11 +525,6 @@ def train_single(ds, args, seed=42):
     continuous_keys = ds['continuous_keys'] or None
     categorical_keys = ds['categorical_keys'] or None
 
-    # Expression correlation matrix — used for:
-    # 1. Correlation-informed A initialization (gives all GT edges a head start)
-    # 2. Sign consistency loss (A signs match expression correlation)
-    _log(f"  Computing expression correlation matrix ({n_genes} genes)...")
-
     # A initialization: uniform (like RegDiffusion) or correlation-informed
     use_corr_init = getattr(args, 'corr_init', False)
     if use_corr_init:
@@ -664,15 +659,12 @@ def save_results(model, ds, elapsed, save_dir, args, gene_reg_norm,
     """Save training outputs to a single folder (memory-efficient).
 
     Saves:
-        model.pt               — checkpoint (only NN params, NOT full adj_A)
-        adjacency.npz          — sparse A matrix (only non-trivial edges)
-        training_config.json   — hyperparameters + metadata
+        model.pt                   full state dict (adjacency, denoiser and dynamic factors)
+        adjacency.npz              sparse |A_static| (non-zero entries only)
+        GRN_inference_result.tsv   ranked edge list (top max_edges by weight)
+        training_config.json       hyperparameters and metadata
 
-    Memory optimizations:
-        - A extracted as bf16 on CPU, converted to sparse immediately
-        - Edge list saved as top max_edges only (not all 482M)
-        - Model checkpoint excludes adj_A (saved in adjacency.npz instead)
-        - Total disk: ~50 MB instead of ~20 GB
+    A is moved to the CPU and converted to sparse immediately to bound memory.
     """
     os.makedirs(save_dir, exist_ok=True)
 

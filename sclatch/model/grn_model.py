@@ -5,7 +5,6 @@ Production model combining:
   - RegDiffusion architecture: (I-A) at output, per-gene embeddings
   - Generic multi-signal conditioning (pseudotime, cell type, batch, etc.)
   - Dynamic A(τ): low-rank pseudotime-dependent adjacency perturbation
-  - Sign-consistency regularization: A signs agree with expression correlation
   - Temporal contrastive loss: A varies across pseudotime
   - Two-phase training: warm-start static → unfreeze dynamic
 
@@ -13,7 +12,7 @@ Architecture:
   A(τ) = A_static + Σ_k gate_k(τ) · (u_k ⊗ v_k)
 
   where gate_k(τ) maps pseudotime to K scalar weights via sinusoidal MLP.
-  When dynamic_rank=0, reduces to static A (same as v3).
+  When dynamic_rank=0, reduces to static A.
 
 Training losses:
   L = L_denoise + λ_sparse_static * |A_static| + λ_sparse_dynamic * |ΔA|

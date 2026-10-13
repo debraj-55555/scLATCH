@@ -131,8 +131,8 @@ edge list (`regulator_TF, target_gene, weight, sign`) for pandas, networkx or Cy
 - **Google Drive** ([folder](https://drive.google.com/drive/folders/1Uj2zvCKHfi9ET7Ud1NzR39VKzNwefF-p?usp=sharing)):
   the ChIP-Atlas cache (`scLATCH_priors_chip_atlas.tar.gz`) and the full scATAC of the two
   examples (`example_atac/<name>/atac.h5ad`).
-- **Zenodo** ([doi:<ZENODO_DOI>](https://doi.org/<ZENODO_DOI>)): processed datasets, inferred
-  networks and trained models.
+- **figshare** ([doi:10.6084/m9.figshare.34335939](https://doi.org/10.6084/m9.figshare.34335939)):
+  processed datasets, inferred networks, trained models and figure source data.
 
 ## Citation
 
